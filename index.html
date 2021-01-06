@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./three.js"></script>
+    <script src="./WebGL.js"></script>
+    <script src="./OrbitControls.js"></script>
+    <script src="./stats.min.js"></script>
+    <title>init</title>
+  </head>
+  <body></body>
+  <script>
+    var renderer, scene, camera, controls;
+    //判断浏览器是否支持webgl
+    window.onload = function () {
+      if (WEBGL.isWebGLAvailable() === false) {
+        document.body.appendChild(WEBGL.getWebGLErrorMessage());
+      }
+      init();
+    };
+    // 初始化函数
+    function init() {
+      // scene 初始化场景，用来填充各种元素
+      scene = new THREE.Scene();
+      // 给场景加个背景色
+      scene.background = new THREE.Color().setHSL(0.6, 0, 1);
+      // 给场景价加雾  作用就是远处看不清
+      scene.fog = new THREE.Fog(scene.background, 1, 5000);
+      //camera 初始化摄像机
+      //透视相机 有近大远小的功能
+      camera = new THREE.PerspectiveCamera(
+        80,
+        window.innerWidth / window.innerHeight,
+        1,
+        1000
+      );
+      //相机的位置 X ，Y，Z
+      camera.position.set(0, 0, 30);
+      //相机添加到场景
+      scene.add(camera);
+      // renderer渲染器  初始化渲染器可以吧场景渲染到dom
+      renderer = new THREE.WebGLRenderer();
+      //设置全屏渲染
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      //把渲染器添加到dom节点
+      document.body.appendChild(renderer.domElement);
+
+      // 初始化 坐标系  这样调试可以看到xyz的位置
+      var axes = new THREE.AxisHelper(500);
+      scene.add(axes);
+
+      //添加一个地面
+      var planeGeometry = new THREE.PlaneGeometry(100, 100);
+      var planeMaterial = new THREE.MeshLambertMaterial({
+        color: 0xcce0ff,
+        side: THREE.DoubleSide,
+      });
+      var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.rotation.x = -0.5 * Math.PI;
+      plane.position.y = -7.1;
+      plane.receiveShadow = true; //可以接收阴影
+      scene.add(plane);
+
+      //light  添加两个光源 否则整个场景黑黑的啥也看不到
+      // ambient平行光
+      scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+      //点光源
+      var light = new THREE.PointLight(0xffffff, 1.5);
+      camera.add(light);
+
+      //初始化stats
+      stats = new Stats();
+      document.body.appendChild(stats.dom);
+      stats.update();
+
+      //controls 添加控制器 鼠标就可以旋转场景
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.addEventListener("change", render);
+      controls.enablePan = false;
+      render();
+    }
+
+    function render() {
+      stats.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</html>
